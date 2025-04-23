@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Filter - Little Learners Emporium</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .game-container {
+            max-width: 800px;
+            margin: 40px auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 20px;
+        }
+
+        .items-container {
+            flex: 2;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .drop-zones {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .drop-zone {
+            background: #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item {
+            padding: 10px;
+            background: white;
+            border: 2px solid #5db075;
+            border-radius: 8px;
+            cursor: move;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+
+        .item:hover {
+            transform: scale(1.05);
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #5db075;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            background: #4a8f5e;
+        }
+
+        .drop-zone.highlight {
+            background: #d1e7dd;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Educational Filter</h1>
+        <p>Sort the items into their correct categories!</p>
+        <div class="score">Score: <span id="score">0</span></div>
+        
+        <div class="game-area">
+            <div class="items-container" id="itemsContainer">
+                <!-- Items will be added here -->
+            </div>
+            
+            <div class="drop-zones">
+                <div class="drop-zone" data-category="numbers">
+                    <h3>Numbers</h3>
+                </div>
+                <div class="drop-zone" data-category="letters">
+                    <h3>Letters</h3>
+                </div>
+                <div class="drop-zone" data-category="shapes">
+                    <h3>Shapes</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="startGame()">Start Game</button>
+            <button class="btn" onclick="window.location.href='../games.php'">Back to Games</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        
+        const items = [
+            { text: "1", category: "numbers" },
+            { text: "2", category: "numbers" },
+            { text: "3", category: "numbers" },
+            { text: "A", category: "letters" },
+            { text: "B", category: "letters" },
+            { text: "C", category: "letters" },
+            { text: "△", category: "shapes" },
+            { text: "□", category: "shapes" },
+            { text: "○", category: "shapes" }
+        ];
+
+        function createDraggableItem(item) {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.textContent = item.text;
+            div.draggable = true;
+            div.dataset.category = item.category;
+            
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                e.target.style.opacity = '0.5';
+            });
+            
+            div.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+            
+            return div;
+        }
+
+        function setupDropZones() {
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('highlight');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('highlight');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('highlight');
+                    
+                    const item = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    if (item.category === zone.dataset.category) {
+                        score += 10;
+                        e.target.closest('.drop-zone').appendChild(createDraggableItem(item));
+                    } else {
+                        score = Math.max(0, score - 5);
+                    }
+                    document.getElementById('score').textContent = score;
+                });
+            });
+        }
+
+        function startGame() {
+            score = 0;
+            document.getElementById('score').textContent = score;
+            
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = '';
+            
+            // Shuffle items
+            const shuffledItems = [...items].sort(() => Math.random() - 0.5);
+            
+            // Add items to container
+            shuffledItems.forEach(item => {
+                itemsContainer.appendChild(createDraggableItem(item));
+            });
+            
+            // Reset drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                const title = zone.querySelector('h3');
+                zone.innerHTML = '';
+                zone.appendChild(title);
+            });
+        }
+
+        // Initialize game
+        setupDropZones();
+        startGame();
+    </script>
+</body>
+</html> 

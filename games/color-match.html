@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Match - Little Learners Emporium</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .game-container {
+            max-width: 800px;
+            margin: 40px auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .color-card {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .color-card:hover {
+            transform: scale(1.05);
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .target-color {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 3px solid #333;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #5db075;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            background: #4a8f5e;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Color Match</h1>
+        <p>Match the target color by clicking on the correct color card!</p>
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="target-color" id="targetColor"></div>
+        <div class="game-area" id="gameArea">
+            <!-- Color cards will be added here -->
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="startGame()">Start Game</button>
+            <button class="btn" onclick="window.location.href='../games.php'">Back to Games</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let targetColorHex;
+        
+        const colors = [
+            '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+            '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+            '#008000', '#000080', '#FF69B4', '#4B0082'
+        ];
+
+        function getRandomColor() {
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function createColorCard(color) {
+            const card = document.createElement('div');
+            card.className = 'color-card';
+            card.style.backgroundColor = color;
+            card.onclick = () => checkMatch(color);
+            return card;
+        }
+
+        function checkMatch(selectedColor) {
+            if (selectedColor === targetColorHex) {
+                score += 10;
+                document.getElementById('score').textContent = score;
+                startRound();
+            } else {
+                score = Math.max(0, score - 5);
+                document.getElementById('score').textContent = score;
+            }
+        }
+
+        function startRound() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '';
+            
+            // Set new target color
+            targetColorHex = getRandomColor();
+            document.getElementById('targetColor').style.backgroundColor = targetColorHex;
+            
+            // Create shuffled array of colors
+            let roundColors = [...colors].sort(() => Math.random() - 0.5).slice(0, 12);
+            if (!roundColors.includes(targetColorHex)) {
+                roundColors[Math.floor(Math.random() * 12)] = targetColorHex;
+            }
+            
+            // Create color cards
+            roundColors.forEach(color => {
+                gameArea.appendChild(createColorCard(color));
+            });
+        }
+
+        function startGame() {
+            score = 0;
+            document.getElementById('score').textContent = score;
+            startRound();
+        }
+
+        // Start game when page loads
+        startGame();
+    </script>
+</body>
+</html> 

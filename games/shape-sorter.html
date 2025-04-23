@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Sorter Game - Little Learners Emporium</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .score-container {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .shapes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            min-height: 100px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .shape {
+            width: 80px;
+            height: 80px;
+            cursor: move;
+            transition: transform 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shape svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape:hover {
+            transform: scale(1.1);
+        }
+
+        .shape.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-zones {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .drop-zone {
+            background: #f8f9fa;
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .drop-zone h3 {
+            position: absolute;
+            top: 20px;
+            margin: 0;
+            color: #666;
+            font-size: 1.2em;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .drop-zone::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 3px dashed #ccc;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .drop-zone[data-shape="circle"]::after {
+            border-radius: 50%;
+        }
+
+        .drop-zone[data-shape="square"]::after {
+            border-radius: 0;
+        }
+
+        .drop-zone[data-shape="triangle"]::after {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .drop-zone.hover {
+            background-color: #e3f2fd;
+        }
+
+        .drop-zone.hover::after {
+            border-color: #2196f3;
+        }
+
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .btn:first-child {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn.reset {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Comic Sans MS', cursive;
+            display: none;
+            animation: fadeOut 2s forwards;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .feedback.success {
+            background-color: #4CAF50;
+        }
+
+        .feedback.error {
+            background-color: #f44336;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .shape {
+                width: 70px;
+                height: 70px;
+            }
+
+            .drop-zone::after {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .shape {
+                width: 60px;
+                height: 60px;
+            }
+
+            .drop-zone::after {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🔷 Shape Sorter Game</h1>
+            <p>Drag and drop the shapes to their correct zones!</p>
+        </div>
+
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+
+        <div class="game-area">
+            <div class="shapes-container" id="shapesContainer"></div>
+            
+            <div class="drop-zones">
+                <div class="drop-zone" data-shape="circle">
+                    <h3>Circles</h3>
+                </div>
+                <div class="drop-zone" data-shape="square">
+                    <h3>Squares</h3>
+                </div>
+                <div class="drop-zone" data-shape="triangle">
+                    <h3>Triangles</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="startNewGame()">New Game</button>
+            <button class="btn reset" onclick="resetGame()">Reset</button>
+        </div>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <script>
+        let score = 0;
+        const shapes = [
+            { type: 'circle', color: '#FF6B6B', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor"/></svg>' },
+            { type: 'circle', color: '#4ECDC4', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor"/></svg>' },
+            { type: 'square', color: '#FFD93D', svg: '<svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" fill="currentColor"/></svg>' },
+            { type: 'square', color: '#6C5CE7', svg: '<svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" fill="currentColor"/></svg>' },
+            { type: 'triangle', color: '#A8E6CF', svg: '<svg viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="currentColor"/></svg>' },
+            { type: 'triangle', color: '#FF8B94', svg: '<svg viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="currentColor"/></svg>' }
+        ];
+
+        function createShape(shape) {
+            const div = document.createElement('div');
+            div.className = 'shape';
+            div.draggable = true;
+            div.dataset.shape = shape.type;
+            div.style.color = shape.color;
+            div.innerHTML = shape.svg;
+            
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('dragend', handleDragEnd);
+            
+            return div;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function handleDragStart(e) {
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.shape);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function showFeedback(message, isSuccess) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `feedback ${isSuccess ? 'success' : 'error'}`;
+            feedback.style.display = 'block';
+            
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 2000);
+        }
+
+        function setupDropZones() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('hover');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('hover');
+                });
+
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('hover');
+                    
+                    const shapeType = e.dataTransfer.getData('text/plain');
+                    const correctZone = zone.dataset.shape === shapeType;
+                    
+                    if (correctZone) {
+                        const shape = document.querySelector('.dragging');
+                        zone.appendChild(shape);
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                        showFeedback('Correct! +10 points', true);
+                        
+                        if (document.querySelector('.shapes-container').children.length === 0) {
+                            setTimeout(() => {
+                                alert('Congratulations! You\'ve sorted all shapes correctly!');
+                            }, 500);
+                        }
+                    } else {
+                        showFeedback('Try again! That\'s not the correct zone', false);
+                    }
+                });
+            });
+        }
+
+        function startNewGame() {
+            const container = document.getElementById('shapesContainer');
+            container.innerHTML = '';
+            score = 0;
+            document.getElementById('score').textContent = score;
+            
+            const gameShapes = shuffleArray([...shapes]);
+            gameShapes.forEach(shape => {
+                container.appendChild(createShape(shape));
+            });
+        }
+
+        function resetGame() {
+            const shapes = document.querySelectorAll('.shape');
+            const container = document.getElementById('shapesContainer');
+            shapes.forEach(shape => container.appendChild(shape));
+            score = 0;
+            document.getElementById('score').textContent = score;
+        }
+
+        // Initialize the game
+        setupDropZones();
+        startNewGame();
+    </script>
+</body>
+</html> 
